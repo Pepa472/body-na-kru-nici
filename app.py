@@ -3,23 +3,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 from fpdf import FPDF
 import io
+import tempfile
+import os
 
-st.title("Body na kružnici")
+st.title("Body na kružnici - Webová aplikace")
 
-# Vstupy uživatele
+# --- Uživatelské vstupy ---
 x0 = st.number_input("Souřadnice středu X:", value=0.0)
 y0 = st.number_input("Souřadnice středu Y:", value=0.0)
 r = st.number_input("Poloměr kružnice:", min_value=0.1, value=1.0)
-n = st.number_input("Počet bodů:", min_value=1, step=1, value=8)
+n = st.number_input("Počet bodů na kružnici:", min_value=1, step=1, value=8)
 color = st.color_picker("Barva bodů:", "#ff0000")
 unit = st.text_input("Jednotka (např. m):", "m")
 
-# Výpočet bodů
+# --- Výpočet souřadnic bodů ---
 angles = np.linspace(0, 2*np.pi, int(n), endpoint=False)
 x_points = x0 + r * np.cos(angles)
 y_points = y0 + r * np.sin(angles)
 
-# Vykreslení grafu
+# --- Vykreslení grafu ---
 fig, ax = plt.subplots()
 ax.plot(x_points, y_points, 'o', color=color)
 circle = plt.Circle((x0, y0), r, fill=False, linestyle='--')
@@ -31,10 +33,7 @@ ax.grid(True)
 
 st.pyplot(fig)
 
-# Generování PDF
-import tempfile
-import os
-
+# --- Funkce pro vytvoření PDF ---
 def create_pdf():
     pdf = FPDF()
     pdf.add_page()
@@ -46,18 +45,14 @@ def create_pdf():
     pdf.cell(0, 10, f"Počet bodů: {n}", ln=True)
     pdf.cell(0, 10, f"Barva bodů: {color}", ln=True)
 
-    # Uložení obrázku do dočasného souboru
+    # Uložení grafu do dočasného souboru
     with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
         fig.savefig(tmpfile.name)
         tmpfile_path = tmpfile.name
 
-    # Vložení obrázku z dočasného souboru do PDF
     pdf.image(tmpfile_path, x=10, y=70, w=pdf.w - 20)
-
-    # Smazání dočasného souboru
     os.remove(tmpfile_path)
 
-    # Autor a kontakt
     pdf.set_xy(10, pdf.get_y() + 10)
     pdf.cell(0, 10, "Autor: Tvé jméno", ln=True)
     pdf.cell(0, 10, "Email: tvuj@email.cz", ln=True)
@@ -67,4 +62,26 @@ def create_pdf():
     pdf.output(output)
     output.seek(0)
     return output
+
+# --- Generování a stažení PDF ---
+pdf_data = None
+if st.button("Vygenerovat PDF"):
+    pdf_data = create_pdf()
+
+if pdf_data:
+    st.download_button(
+        label="Klikni pro stažení PDF",
+        data=pdf_data,
+        file_name="kruznice.pdf",
+        mime="application/pdf"
+    )
+
+# --- Informace o aplikaci ---
+with st.expander("O aplikaci a použitých technologiích"):
+    st.markdown("""
+    **Autor:** Tvé jméno  
+    **Email:** tvuj@email.cz  
+    **Použité technologie:** Python, Streamlit, Matplotlib, FPDF  
+    """)
+
 
