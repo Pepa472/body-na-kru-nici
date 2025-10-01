@@ -3,8 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from fpdf import FPDF
 import io
-import tempfile
-import os
 
 st.title("Body na kružnici - Webová aplikace")
 
@@ -33,7 +31,7 @@ ax.grid(True)
 
 st.pyplot(fig)
 
-# --- Funkce pro vytvoření PDF ---
+# --- Funkce pro vytvoření PDF bez obrázku ---
 def create_pdf():
     pdf = FPDF()
     pdf.add_page()
@@ -45,15 +43,7 @@ def create_pdf():
     pdf.cell(0, 10, f"Počet bodů: {n}", ln=True)
     pdf.cell(0, 10, f"Barva bodů: {color}", ln=True)
 
-    # Uložení grafu do dočasného souboru
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
-        fig.savefig(tmpfile.name)
-        tmpfile_path = tmpfile.name
-
-    pdf.image(tmpfile_path, x=10, y=70, w=pdf.w - 20)
-    os.remove(tmpfile_path)
-
-    pdf.set_xy(10, pdf.get_y() + 10)
+    pdf.ln(10)
     pdf.cell(0, 10, "Autor: Tvé jméno", ln=True)
     pdf.cell(0, 10, "Email: tvuj@email.cz", ln=True)
     pdf.cell(0, 10, "Použité technologie: Python, Streamlit, Matplotlib, FPDF", ln=True)
