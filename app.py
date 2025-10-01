@@ -32,6 +32,9 @@ ax.grid(True)
 st.pyplot(fig)
 
 # Generování PDF
+import tempfile
+import os
+
 def create_pdf():
     pdf = FPDF()
     pdf.add_page()
@@ -43,13 +46,16 @@ def create_pdf():
     pdf.cell(0, 10, f"Počet bodů: {n}", ln=True)
     pdf.cell(0, 10, f"Barva bodů: {color}", ln=True)
 
-    # Uložíme obrázek grafu do bufferu
-    buf = io.BytesIO()
-    fig.savefig(buf, format='png')
-    buf.seek(0)
+    # Uložení obrázku do dočasného souboru
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
+        fig.savefig(tmpfile.name)
+        tmpfile_path = tmpfile.name
 
-    # Přidáme obrázek do PDF
-    pdf.image(buf, x=10, y=70, w=pdf.w - 20)  # trochu odsazení a šířka
+    # Vložení obrázku z dočasného souboru do PDF
+    pdf.image(tmpfile_path, x=10, y=70, w=pdf.w - 20)
+
+    # Smazání dočasného souboru
+    os.remove(tmpfile_path)
 
     # Autor a kontakt
     pdf.set_xy(10, pdf.get_y() + 10)
@@ -62,18 +68,3 @@ def create_pdf():
     output.seek(0)
     return output
 
-if st.button("Stáhnout PDF"):
-    pdf_data = create_pdf()
-    st.download_button(
-        label="Klikni pro stažení PDF",
-        data=pdf_data,
-        file_name="kruznice.pdf",
-        mime="application/pdf"
-    )
-
-with st.expander("O aplikaci"):
-    st.markdown("""
-    **Autor:** Tvé jméno  
-    **Email:** tvuj@email.cz  
-    **Použité technologie:** Python, Streamlit, Matplotlib, FPDF  
-    """)
