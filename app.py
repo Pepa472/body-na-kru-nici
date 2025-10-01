@@ -58,10 +58,8 @@ def create_pdf():
     pdf.cell(0, 10, "Email: tvuj@email.cz", ln=True)
     pdf.cell(0, 10, "Použité technologie: Python, Streamlit, Matplotlib, FPDF", ln=True)
 
-    output = io.BytesIO()
-    pdf.output(output)
-    output.seek(0)
-    return output
+    pdf_str = pdf.output(dest='S').encode('latin1')  # správné generování PDF bytes
+    return io.BytesIO(pdf_str)
 
 # --- Generování a stažení PDF ---
 pdf_data = None
@@ -83,5 +81,4 @@ with st.expander("O aplikaci a použitých technologiích"):
     **Email:** tvuj@email.cz  
     **Použité technologie:** Python, Streamlit, Matplotlib, FPDF  
     """)
-
 
